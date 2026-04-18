@@ -2,6 +2,7 @@
 Application configuration — paths, model settings, class names.
 """
 
+import os
 from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
@@ -42,9 +43,13 @@ CLASS_NAMES = [
 ]
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
+# Set via env variable for deployment, e.g.:
+#   set CORS_ORIGINS=https://dermscan.example.com,https://www.dermscan.example.com
+# Falls back to localhost defaults for local development.
+_DEFAULT_ORIGINS = "http://localhost:8080,https://localhost:8080,http://localhost:5173,https://localhost:5173"
+
 CORS_ORIGINS = [
-    "https://localhost:8080",
-    "http://localhost:8080",
-    "https://localhost:5173",
-    "http://localhost:5173",
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", _DEFAULT_ORIGINS).split(",")
+    if origin.strip()
 ]

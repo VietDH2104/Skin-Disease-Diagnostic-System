@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
 ALLOWED_CONTENT_TYPES = {
     "image/jpeg": "jpg",
     "image/png": "png",
@@ -44,9 +46,14 @@ async def predict_endpoint(
     ext = ALLOWED_CONTENT_TYPES[content_type]
 
     # ── Step 2: Read image bytes ────────────────────────────────────────────
-    image_bytes = await file.read()
+    image_bytes = await file.read(MAX_FILE_SIZE + 1)
     if not image_bytes:
         raise HTTPException(status_code=422, detail="Uploaded file is empty.")
+    if len(image_bytes) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail="File too large. Maximum allowed size is 10 MB.",
+        )
 
     # ── Step 3: Generate UUID & save image to disk ──────────────────────────
     image_id = str(uuid.uuid4())
