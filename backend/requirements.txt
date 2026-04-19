@@ -1,7 +1,8 @@
 fastapi>=0.115,<1
 uvicorn[standard]>=0.34,<1
 python-multipart>=0.0.9,<1
-tensorflow>=2.18,<3
+tensorflow==2.18.0
 Pillow>=11,<12
 sqlalchemy>=2.0,<3
 pydantic-settings>=2,<3
+psycopg2-binary>=2.9,<3

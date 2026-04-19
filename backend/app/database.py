@@ -7,10 +7,11 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from .config import DATABASE_URL
 
+_is_sqlite = DATABASE_URL.startswith("sqlite")
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # required for SQLite
+    connect_args={"check_same_thread": False} if _is_sqlite else {},
     echo=False,
 )
 

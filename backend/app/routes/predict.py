@@ -80,28 +80,32 @@ async def predict_endpoint(
         )
 
     # ── Step 5: Save image record to DB ─────────────────────────────────────
-    db_image = Image(
-        id=image_id,
-        original_filename=file.filename or "unknown",
-        stored_filename=stored_filename,
-        file_path=str(file_path.relative_to(UPLOADS_DIR.parent)),
-        file_size_bytes=len(image_bytes),
-    )
-    db.add(db_image)
-
-    # ── Step 6: Save prediction records to DB ───────────────────────────────
-    for rank, pred in enumerate(raw_predictions, start=1):
-        db.add(
-            PredictionRecord(
-                image_id=image_id,
-                class_name=pred["name"],
-                confidence=pred["confidence"],
-                rank=rank,
-            )
+    try:
+        db_image = Image(
+            id=image_id,
+            original_filename=file.filename or "unknown",
+            stored_filename=stored_filename,
+            file_path=str(file_path.relative_to(UPLOADS_DIR.parent)),
+            file_size_bytes=len(image_bytes),
         )
+        db.add(db_image)
 
-    db.commit()
-    logger.info("DB records created for image %s", image_id)
+        # ── Step 6: Save prediction records to DB ───────────────────────────
+        for rank, pred in enumerate(raw_predictions, start=1):
+            db.add(
+                PredictionRecord(
+                    image_id=image_id,
+                    class_name=pred["name"],
+                    confidence=pred["confidence"],
+                    rank=rank,
+                )
+            )
+
+        db.commit()
+        logger.info("DB records created for image %s", image_id)
+    except Exception as exc:
+        db.rollback()
+        logger.warning("DB save failed (predictions still returned): %s", exc)
 
     # ── Step 7: Return response ─────────────────────────────────────────────
     return AnalysisResponse(

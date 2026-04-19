@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [react(), basicSsl()],
+  plugins: [react(), ...(mode === 'development' ? [basicSsl()] : [])],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

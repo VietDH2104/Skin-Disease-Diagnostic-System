@@ -8,8 +8,9 @@ export interface AnalysisResult {
   predictions: Prediction[];
 }
 
-// Relative URL — works on localhost and network devices via Vite proxy
-const API_URL = import.meta.env.VITE_API_URL || "/predict";
+// Base URL — empty string for local dev (uses Vite proxy), full URL for production
+const API_BASE = import.meta.env.VITE_API_URL || "";
+const API_URL = `${API_BASE}/predict`;
 
 export async function analyzeImage(imageFile: File): Promise<AnalysisResult> {
   const formData = new FormData();

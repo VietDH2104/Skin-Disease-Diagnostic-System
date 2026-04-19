@@ -9,7 +9,13 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent          # backend/
 MODEL_PATH = BASE_DIR / "model" / "skinnet_v3_phase3_best.keras"
 UPLOADS_DIR = BASE_DIR / "uploads"
-DATABASE_URL = f"sqlite:///{BASE_DIR / 'dermscan.db'}"
+
+# ── Database ───────────────────────────────────────────────────────────────────
+# Production: set DATABASE_URL env var (Supabase PostgreSQL connection string)
+# Local dev:  falls back to SQLite
+_raw_db_url = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'dermscan.db'}")
+# Supabase uses 'postgres://' but SQLAlchemy requires 'postgresql://'
+DATABASE_URL = _raw_db_url.replace("postgres://", "postgresql://", 1)
 
 # ── Model settings ─────────────────────────────────────────────────────────────
 IMG_SIZE = 300        # EfficientNetB3 input: 300×300

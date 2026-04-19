@@ -31,3 +31,6 @@ backend/dermscan.db
 __pycache__/
 *.pyc
 backend/venv/
+.env
+.env.local
+.env.production
