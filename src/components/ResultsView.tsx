@@ -1,7 +1,18 @@
+import { useState } from "react";
 import { Prediction } from "@/lib/api";
+import { getDiseaseInfo, SEVERITY_CONFIG } from "@/lib/diseases";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertTriangle, TrendingUp } from "lucide-react";
+import {
+  ArrowLeft,
+  AlertTriangle,
+  TrendingUp,
+  ChevronDown,
+  MapPin,
+  Stethoscope,
+  ShieldAlert,
+  Activity,
+} from "lucide-react";
 
 interface ResultsViewProps {
   imageUrl: string;
@@ -11,17 +22,20 @@ interface ResultsViewProps {
 
 const RANK_STYLES = [
   {
-    badge: "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20",
+    badge:
+      "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20",
     bar: "from-amber-500 to-amber-400",
     label: "🥇",
   },
   {
-    badge: "bg-slate-400/15 text-slate-500 dark:text-slate-400 ring-1 ring-slate-400/20",
+    badge:
+      "bg-slate-400/15 text-slate-500 dark:text-slate-400 ring-1 ring-slate-400/20",
     bar: "from-slate-400 to-slate-300",
     label: "🥈",
   },
   {
-    badge: "bg-orange-600/15 text-orange-600 dark:text-orange-400 ring-1 ring-orange-500/20",
+    badge:
+      "bg-orange-600/15 text-orange-600 dark:text-orange-400 ring-1 ring-orange-500/20",
     bar: "from-orange-500 to-orange-400",
     label: "🥉",
   },
@@ -37,11 +51,26 @@ const RANK_STYLES = [
   },
 ];
 
+/** Confidence label based on percentage */
+function getConfidenceLabel(confidence: number) {
+  const pct = confidence * 100;
+  if (pct >= 80) return { text: "Strong Match", color: "text-red-500 dark:text-red-400" };
+  if (pct >= 60) return { text: "Likely", color: "text-orange-500 dark:text-orange-400" };
+  if (pct >= 30) return { text: "Possible", color: "text-amber-500 dark:text-amber-400" };
+  return { text: "Unlikely", color: "text-emerald-500 dark:text-emerald-400" };
+}
+
 export function ResultsView({
   imageUrl,
   predictions,
   onReset,
 }: ResultsViewProps) {
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  const toggleExpand = (index: number) => {
+    setExpandedIndex(expandedIndex === index ? null : index);
+  };
+
   return (
     <div className="mx-auto w-full max-w-3xl space-y-8 animate-fade-in-up">
       <Button
@@ -70,18 +99,31 @@ export function ResultsView({
               Analysis Results
             </h2>
           </div>
+
           {predictions.map((p, i) => {
             const style = RANK_STYLES[i] || RANK_STYLES[4];
+            const disease = getDiseaseInfo(p.name);
+            const isExpanded = expandedIndex === i;
+            const confidenceLabel = getConfidenceLabel(p.confidence);
+
             return (
               <Card
                 key={p.name}
-                className="overflow-hidden border-border/50 transition-all duration-300 hover:shadow-md hover:border-primary/20"
+                className={`overflow-hidden border-border/50 transition-all duration-300 hover:shadow-md ${
+                  isExpanded
+                    ? "border-primary/30 shadow-md"
+                    : "hover:border-primary/20"
+                }`}
                 style={{
                   animation: `slide-in 0.4s ease-out ${i * 0.1}s forwards`,
                   opacity: 0,
                 }}
               >
-                <CardContent className="flex items-center gap-4 p-4">
+                {/* Clickable header */}
+                <CardContent
+                  className="flex items-center gap-4 p-4 cursor-pointer select-none"
+                  onClick={() => disease && toggleExpand(i)}
+                >
                   <span
                     className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${style.badge}`}
                   >
@@ -90,11 +132,18 @@ export function ResultsView({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <p className="truncate font-medium text-foreground">
-                        {p.name.replace(/_/g, " ")}
+                        {disease?.displayName || p.name.replace(/_/g, " ")}
                       </p>
-                      <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">
-                        {(p.confidence * 100).toFixed(1)}%
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span
+                          className={`text-xs font-medium ${confidenceLabel.color}`}
+                        >
+                          {confidenceLabel.text}
+                        </span>
+                        <span className="text-sm font-bold tabular-nums text-foreground">
+                          {(p.confidence * 100).toFixed(1)}%
+                        </span>
+                      </div>
                     </div>
                     <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-secondary">
                       <div
@@ -105,8 +154,131 @@ export function ResultsView({
                         }}
                       />
                     </div>
+                    {/* Category + severity tags */}
+                    {disease && (
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/8 px-2 py-0.5 text-[11px] font-medium text-primary">
+                          {disease.category}
+                        </span>
+                        {(() => {
+                          const sev = SEVERITY_CONFIG[disease.severity];
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${sev.bg} ${sev.color} ring-1 ${sev.ring}`}
+                            >
+                              {sev.icon} {sev.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
+                  {/* Expand chevron */}
+                  {disease && (
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  )}
                 </CardContent>
+
+                {/* Expandable disease detail panel */}
+                {disease && (
+                  <div
+                    className={`grid transition-all duration-300 ease-in-out ${
+                      isExpanded
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="border-t border-border/50 px-4 pb-5 pt-4 space-y-4">
+                        {/* Description */}
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {disease.description}
+                        </p>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          {/* Symptoms */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1.5">
+                              <Stethoscope className="h-3.5 w-3.5 text-primary" />
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                Symptoms
+                              </h4>
+                            </div>
+                            <ul className="space-y-1">
+                              {disease.symptoms.map((s) => (
+                                <li
+                                  key={s}
+                                  className="flex items-start gap-2 text-xs text-muted-foreground"
+                                >
+                                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary/60" />
+                                  {s}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Causes */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1.5">
+                              <Activity className="h-3.5 w-3.5 text-primary" />
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                Common Causes
+                              </h4>
+                            </div>
+                            <ul className="space-y-1">
+                              {disease.causes.map((c) => (
+                                <li
+                                  key={c}
+                                  className="flex items-start gap-2 text-xs text-muted-foreground"
+                                >
+                                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary/60" />
+                                  {c}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Common locations */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5 text-primary" />
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                              Common Locations
+                            </h4>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {disease.commonLocations.map((loc) => (
+                              <span
+                                key={loc}
+                                className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-muted-foreground"
+                              >
+                                {loc}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* When to see a doctor */}
+                        <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                              When to See a Doctor
+                            </h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {disease.whenToSeeDoctor}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Card>
             );
           })}
