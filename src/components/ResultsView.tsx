@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Prediction } from "@/lib/api";
 import { getDiseaseInfo, SEVERITY_CONFIG } from "@/lib/diseases";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,76 @@ import {
   Stethoscope,
   ShieldAlert,
   Activity,
+  Copy,
+  Check,
 } from "lucide-react";
+import { toast } from "sonner";
+
+/** Animated number that counts up from 0 to target */
+function AnimatedPercentage({ value, delay = 0 }: { value: number; delay?: number }) {
+  const [display, setDisplay] = useState(0);
+  const ref = useRef<number>();
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const start = performance.now();
+      const duration = 800;
+      const tick = (now: number) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // ease-out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setDisplay(eased * value);
+        if (progress < 1) ref.current = requestAnimationFrame(tick);
+      };
+      ref.current = requestAnimationFrame(tick);
+    }, delay);
+    return () => {
+      clearTimeout(timeout);
+      if (ref.current) cancelAnimationFrame(ref.current);
+    };
+  }, [value, delay]);
+
+  return <>{display.toFixed(1)}%</>;
+}
+
+/** Copy results to clipboard as formatted text */
+function CopyResultsButton({ predictions }: { predictions: Prediction[] }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const lines = predictions.map((p, i) => {
+      const disease = getDiseaseInfo(p.name);
+      const name = disease?.displayName || p.name.replace(/_/g, " ");
+      return `${i + 1}. ${name} — ${(p.confidence * 100).toFixed(1)}%`;
+    });
+    const text = `DermScan Analysis Results\n${"—".repeat(30)}\n${lines.join("\n")}\n\n⚠ This is an AI-generated analysis, not a medical diagnosis.`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Results copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+      title="Copy results to clipboard"
+    >
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-primary" />
+      ) : (
+        <Copy className="h-3.5 w-3.5" />
+      )}
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  );
+}
 
 interface ResultsViewProps {
   imageUrl: string;
@@ -93,11 +162,14 @@ export function ResultsView({
 
         {/* Predictions */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">
-              Analysis Results
-            </h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">
+                Analysis Results
+              </h2>
+            </div>
+            <CopyResultsButton predictions={predictions} />
           </div>
 
           {predictions.map((p, i) => {
@@ -141,7 +213,7 @@ export function ResultsView({
                           {confidenceLabel.text}
                         </span>
                         <span className="text-sm font-bold tabular-nums text-foreground">
-                          {(p.confidence * 100).toFixed(1)}%
+                          <AnimatedPercentage value={p.confidence * 100} delay={i * 150} />
                         </span>
                       </div>
                     </div>

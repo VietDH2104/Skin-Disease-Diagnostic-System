@@ -1,20 +1,93 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ImageCapture } from "@/components/ImageCapture";
 import { ImageUpload } from "@/components/ImageUpload";
 import { ResultsView } from "@/components/ResultsView";
 import { analyzeImage, type Prediction } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
-  Loader2,
   X,
   Sparkles,
   Zap,
   Lock,
   AlertTriangle,
+  Check,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 type AppState = "idle" | "preview" | "loading" | "results" | "error";
+
+const LOADING_STEPS = [
+  { label: "Uploading image", delay: 0 },
+  { label: "Preprocessing", delay: 800 },
+  { label: "Running AI analysis", delay: 2000 },
+  { label: "Generating results", delay: 4000 },
+];
+
+function LoadingSteps() {
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    const timers = LOADING_STEPS.map((step, i) =>
+      setTimeout(() => setActiveStep(i), step.delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div className="w-full max-w-xs space-y-6 animate-fade-in-up">
+      {/* Spinner */}
+      <div className="flex justify-center">
+        <div className="relative">
+          <div
+            className="h-16 w-16 rounded-full animate-spin-slow"
+            style={{
+              background:
+                "conic-gradient(from 0deg, hsl(168 76% 46%), hsl(199 89% 48%), hsl(142 71% 45%), transparent)",
+              padding: "3px",
+            }}
+          >
+            <div className="h-full w-full rounded-full bg-background" />
+          </div>
+          <Loader2 className="absolute inset-0 m-auto h-6 w-6 animate-spin text-primary" />
+        </div>
+      </div>
+
+      {/* Steps */}
+      <div className="space-y-2.5">
+        {LOADING_STEPS.map((step, i) => {
+          const isDone = i < activeStep;
+          const isCurrent = i === activeStep;
+          return (
+            <div
+              key={step.label}
+              className={`flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-500 ${
+                isCurrent
+                  ? "bg-primary/10 text-primary"
+                  : isDone
+                  ? "text-primary/60"
+                  : "text-muted-foreground/40"
+              }`}
+            >
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                {isDone ? (
+                  <Check className="h-4 w-4" />
+                ) : isCurrent ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <div className="h-1.5 w-1.5 rounded-full bg-current" />
+                )}
+              </div>
+              <span className={`text-sm font-medium ${isCurrent ? "" : ""}`}>
+                {step.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const Index = () => {
   const [state, setState] = useState<AppState>("idle");
@@ -145,29 +218,7 @@ const Index = () => {
 
       {/* ── Loading State ── */}
       {state === "loading" && (
-        <div className="flex flex-col items-center gap-6 text-center animate-fade-in-up">
-          <div className="relative">
-            <div
-              className="h-20 w-20 rounded-full animate-spin-slow"
-              style={{
-                background:
-                  "conic-gradient(from 0deg, hsl(168 76% 46%), hsl(199 89% 48%), hsl(142 71% 45%), transparent)",
-                padding: "3px",
-              }}
-            >
-              <div className="h-full w-full rounded-full bg-background" />
-            </div>
-            <Loader2 className="absolute inset-0 m-auto h-8 w-8 animate-spin text-primary" />
-          </div>
-          <div>
-            <p className="text-lg font-semibold text-foreground">
-              Analyzing image…
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Our AI model is examining your skin image
-            </p>
-          </div>
-        </div>
+        <LoadingSteps />
       )}
 
       {/* ── Results State ── */}
