@@ -6,26 +6,26 @@ Built as a thesis project, DermScan combines a trained **EfficientNetB3** model 
 
 ---
 
-## ✨ Features
+## Features
 
-### 🔬 AI-Powered Analysis
+### AI-Powered Analysis
 - **23 skin condition** classification using a fine-tuned EfficientNetB3 model
 - **Top-5 predictions** with confidence percentages for each analysis
 - **Animated confidence scores** that count up with smooth easing
 - **Confidence labels** - Strong Match, Likely, Possible, Unlikely
 
-### 📚 Disease Knowledge Base
+### Disease Knowledge Base
 - Comprehensive medical information for all 23 conditions
 - **Symptoms, causes, severity levels**, and common body locations
 - **"When to See a Doctor"** guidance for each condition
 - **Severity badges** - Low, Moderate, High, Critical with color-coded indicators
 
-### 🗂️ Multi-Page Application
+### Multi-Page Application
 - **Home** - Image upload/capture with instant AI analysis
 - **Disease Library** - Searchable, filterable grid of all 23 conditions with detail modals
 - **About** - How it works, technology stack, system architecture
 
-### 🎨 Modern UI/UX
+### Modern UI/UX
 - **Glassmorphism** design with animated gradient backgrounds
 - **Dark/Light mode** with system preference detection
 - **Drag & drop** image upload with visual feedback
@@ -37,7 +37,7 @@ Built as a thesis project, DermScan combines a trained **EfficientNetB3** model 
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```
 ┌─────────────────┐     HTTPS     ┌──────────────────────┐     SQL     ┌─────────────┐
@@ -56,7 +56,7 @@ Built as a thesis project, DermScan combines a trained **EfficientNetB3** model 
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 DermScan/
@@ -108,7 +108,7 @@ DermScan/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -121,7 +121,7 @@ DermScan/
 ```bash
 cd backend
 
-# Create and activate virtual environment
+# Create and activate a virtual environment
 python -m venv venv
 
 # Windows:
@@ -160,7 +160,7 @@ Navigate to `http://localhost:8080` in your browser. Upload or capture an image 
 
 ---
 
-## 🌐 Deployment
+## Deployment
 
 ### Frontend → Vercel
 
@@ -192,7 +192,7 @@ Navigate to `http://localhost:8080` in your browser. Upload or capture an image 
 
 ---
 
-## 🔌 Environment Variables
+## Environment Variables
 
 | Variable | Where | Purpose |
 |----------|-------|---------|
@@ -203,7 +203,7 @@ Navigate to `http://localhost:8080` in your browser. Upload or capture an image 
 
 ---
 
-## 🧬 Supported Skin Conditions
+## Supported Skin Conditions
 
 The model classifies images into **23 categories**:
 
@@ -235,7 +235,7 @@ The model classifies images into **23 categories**:
 
 ---
 
-## 🧪 Development
+## Development
 
 ```bash
 # Run linter
@@ -261,12 +261,12 @@ npm run preview
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 DermScan is an **educational tool** developed as a thesis project. It is **not a substitute for professional medical advice, diagnosis, or treatment**. Always consult a qualified dermatologist or healthcare provider for skin concerns. The AI model's predictions should be used as a preliminary reference only.
 
 ---
 
-## 📄 License
+## License
 
 This project was developed as part of an academic thesis. All rights reserved.
