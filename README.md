@@ -40,10 +40,10 @@ Built as a thesis project, DermScan combines a trained **EfficientNetB3** model 
 ## System Architecture
 
 ```
-┌─────────────────┐     HTTPS     ┌──────────────────────┐     SQL     ┌─────────────┐
-│    Frontend      │ ──────────── │      Backend          │ ────────── │  Database    │
-│  React + Vite    │              │  FastAPI + TensorFlow │            │ PostgreSQL   │
-│  Vercel          │              │  Hugging Face Spaces  │            │ Supabase     │
+┌─────────────────┐     HTTPS    ┌──────────────────────┐     SQL    ┌─────────────┐
+│    Frontend     │ ──────────── │      Backend         │ ────────── │  Database   │
+│  React + Vite   │              │  FastAPI + TensorFlow│            │ PostgreSQL  │
+│  Vercel         │              │  Hugging Face Spaces │            │ Supabase    │
 └─────────────────┘              └──────────────────────┘            └─────────────┘
 ```
 
@@ -170,7 +170,7 @@ Navigate to `http://localhost:8080` in your browser. Upload or capture an image 
    ```
    VITE_API_URL=https://your-space-name.hf.space
    ```
-4. Deploy - Vercel auto-deploys on every push to `deployment`
+4. Deploy - Vercel auto-deploys on every push to `deployment`.
 
 ### Backend → Hugging Face Spaces
 
