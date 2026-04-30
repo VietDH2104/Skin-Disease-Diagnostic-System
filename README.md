@@ -1,6 +1,6 @@
-# DermScan — AI Skin Disease Diagnostic System
+# DermScan - AI Skin Disease Diagnostic System
 
-DermScan is a full-stack, AI-powered web application that classifies skin conditions from images using deep learning. Users can upload a photo or capture one with their device's camera to receive instant analysis — including confidence scores, severity assessments, and detailed medical context for **23 skin diseases**.
+DermScan is a full-stack, AI-powered web application that classifies skin conditions from images using deep learning. Users can upload a photo or capture one with their device's camera to receive instant analysis - including confidence scores, severity assessments, and detailed medical context for **23 skin diseases**.
 
 Built as a thesis project, DermScan combines a trained **EfficientNetB3** model with a modern React frontend and FastAPI backend, deployed across **Vercel**, **Hugging Face Spaces**, and **Supabase**.
 
@@ -12,24 +12,24 @@ Built as a thesis project, DermScan combines a trained **EfficientNetB3** model 
 - **23 skin condition** classification using a fine-tuned EfficientNetB3 model
 - **Top-5 predictions** with confidence percentages for each analysis
 - **Animated confidence scores** that count up with smooth easing
-- **Confidence labels** — Strong Match, Likely, Possible, Unlikely
+- **Confidence labels** - Strong Match, Likely, Possible, Unlikely
 
 ### 📚 Disease Knowledge Base
 - Comprehensive medical information for all 23 conditions
 - **Symptoms, causes, severity levels**, and common body locations
 - **"When to See a Doctor"** guidance for each condition
-- **Severity badges** — Low, Moderate, High, Critical with color-coded indicators
+- **Severity badges** - Low, Moderate, High, Critical with color-coded indicators
 
 ### 🗂️ Multi-Page Application
-- **Home** — Image upload/capture with instant AI analysis
-- **Disease Library** — Searchable, filterable grid of all 23 conditions with detail modals
-- **About** — How it works, technology stack, system architecture
+- **Home** - Image upload/capture with instant AI analysis
+- **Disease Library** - Searchable, filterable grid of all 23 conditions with detail modals
+- **About** - How it works, technology stack, system architecture
 
 ### 🎨 Modern UI/UX
 - **Glassmorphism** design with animated gradient backgrounds
 - **Dark/Light mode** with system preference detection
 - **Drag & drop** image upload with visual feedback
-- **Expandable result cards** — tap any prediction to reveal full disease details
+- **Expandable result cards** - tap any prediction to reveal full disease details
 - **Multi-step loading** indicator (Uploading → Preprocessing → Analyzing → Generating)
 - **Copy results** button to share analysis as formatted text
 - **Responsive** design for mobile, tablet, and desktop
@@ -63,7 +63,7 @@ DermScan/
 ├── backend/                    # FastAPI backend
 │   ├── app/
 │   │   ├── routes/             # API route handlers
-│   │   │   └── predict.py      # POST /predict — image classification endpoint
+│   │   │   └── predict.py      # POST /predict - image classification endpoint
 │   │   ├── config.py           # Paths, model settings, 23 class names, CORS
 │   │   ├── database.py         # SQLAlchemy engine and session management
 │   │   ├── inference.py        # TensorFlow model loading and prediction logic
@@ -81,19 +81,19 @@ DermScan/
 ├── src/                        # React frontend
 │   ├── components/
 │   │   ├── ui/                 # shadcn/ui primitives (Button, Card, Dialog, etc.)
-│   │   ├── Layout.tsx          # Shared layout — nav bar, background, footer
+│   │   ├── Layout.tsx          # Shared layout - nav bar, background, footer
 │   │   ├── ImageCapture.tsx    # Camera capture component
 │   │   ├── ImageUpload.tsx     # File upload with drag & drop
 │   │   ├── ResultsView.tsx     # Prediction cards with expandable disease details
 │   │   └── ThemeToggle.tsx     # Dark/light mode switch
 │   ├── lib/
-│   │   ├── api.ts              # API client — analyzeImage() fetch wrapper
+│   │   ├── api.ts              # API client - analyzeImage() fetch wrapper
 │   │   ├── diseases.ts         # Disease knowledge base (23 conditions)
 │   │   └── utils.ts            # Tailwind class merge utility
 │   ├── pages/
-│   │   ├── Index.tsx           # Home page — upload, preview, analyze flow
-│   │   ├── Diseases.tsx        # Disease Library — searchable grid + detail modals
-│   │   ├── About.tsx           # About page — how it works, tech stack, disclaimer
+│   │   ├── Index.tsx           # Home page - upload, preview, analyze flow
+│   │   ├── Diseases.tsx        # Disease Library - searchable grid + detail modals
+│   │   ├── About.tsx           # About page - how it works, tech stack, disclaimer
 │   │   └── NotFound.tsx        # 404 page
 │   ├── App.tsx                 # Router and provider setup
 │   ├── main.tsx                # React DOM entry point
@@ -170,7 +170,7 @@ Navigate to `http://localhost:8080` in your browser. Upload or capture an image 
    ```
    VITE_API_URL=https://your-space-name.hf.space
    ```
-4. Deploy — Vercel auto-deploys on every push to `deployment`
+4. Deploy - Vercel auto-deploys on every push to `deployment`
 
 ### Backend → Hugging Face Spaces
 
@@ -255,8 +255,8 @@ npm run preview
 
 | Branch | Purpose |
 |--------|---------|
-| `deployment` | Production — Vercel deploys from here |
-| `feature/ui-enhancements` | Development — latest working code |
+| `deployment` | Production - Vercel deploys from here |
+| `feature/ui-enhancements` | Development - latest working code |
 | `cleanup-post-deploy` | Post-deployment cleanup snapshot |
 
 ---
