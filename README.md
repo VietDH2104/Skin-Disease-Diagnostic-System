@@ -1,272 +1,137 @@
-# DermScan - AI Skin Disease Diagnostic System
+# DermScan - Skin Disease Classification System
 
-DermScan is a full-stack, AI-powered web application that classifies skin conditions from images using deep learning. Users can upload a photo or capture one with their device's camera to receive instant analysis - including confidence scores, severity assessments, and detailed medical context for **23 skin diseases**.
+DermScan classifies skin conditions from a photo. You upload an image or take one with your camera, and the system returns the five most likely diagnoses out of 23 possible conditions, each with a confidence score and supporting medical information.
 
-Built as a thesis project, DermScan combines a trained **EfficientNetB3** model with a modern React frontend and FastAPI backend, deployed across **Vercel**, **Hugging Face Spaces**, and **Supabase**.
+It was built as a thesis project. The model is an EfficientNetB3 network trained on public dermatological images. The frontend runs on React, the backend on FastAPI, and the two are deployed on Vercel and Hugging Face Spaces with a Supabase database behind them.
 
----
-
-## Features
-
-### AI-Powered Analysis
-- **23 skin condition** classification using a fine-tuned EfficientNetB3 model
-- **Top-5 predictions** with confidence percentages for each analysis
-- **Animated confidence scores** that count up with smooth easing
-- **Confidence labels** - Strong Match, Likely, Possible, Unlikely
-
-### Disease Knowledge Base
-- Comprehensive medical information for all 23 conditions
-- **Symptoms, causes, severity levels**, and common body locations
-- **"When to See a Doctor"** guidance for each condition
-- **Severity badges** - Low, Moderate, High, Critical with color-coded indicators
-
-### Multi-Page Application
-- **Home** - Image upload/capture with instant AI analysis
-- **Disease Library** - Searchable, filterable grid of all 23 conditions with detail modals
-- **About** - How it works, technology stack, system architecture
-
-### Modern UI/UX
-- **Glassmorphism** design with animated gradient backgrounds
-- **Dark/Light mode** with system preference detection
-- **Drag & drop** image upload with visual feedback
-- **Expandable result cards** - tap any prediction to reveal full disease details
-- **Multi-step loading** indicator (Uploading → Preprocessing → Analyzing → Generating)
-- **Copy results** button to share analysis as formatted text
-- **Responsive** design for mobile, tablet, and desktop
-- **Mobile hamburger menu** with smooth animations
+A note before anything else: this is a research and educational tool, not a medical device. It does not replace a dermatologist. The predictions are a starting point for discussion with a qualified doctor, nothing more.
 
 ---
 
-## System Architecture
+## What it does
+
+The model returns the top five predictions rather than a single answer. This is deliberate. Many skin diseases look alike in a photograph, and even a trained clinician often cannot separate them by sight alone. A ranked shortlist is more honest about that uncertainty than a single confident guess, and it matches how the system is meant to be used: as a triage aid, not a verdict.
+
+Each prediction comes with a confidence percentage, a severity level, and a short description of the condition including common symptoms and when to see a doctor. The disease library page lets you browse all 23 conditions directly without uploading anything.
+
+---
+
+## Architecture
 
 ```
-┌─────────────────┐     HTTPS    ┌──────────────────────┐     SQL    ┌─────────────┐
-│    Frontend     │ ──────────── │      Backend         │ ────────── │  Database   │
-│  React + Vite   │              │  FastAPI + TensorFlow│            │ PostgreSQL  │
-│  Vercel         │              │  Hugging Face Spaces │            │ Supabase    │
-└─────────────────┘              └──────────────────────┘            └─────────────┘
+Frontend (React + Vite)  -->  Backend (FastAPI + TensorFlow)  -->  Database (PostgreSQL)
+       Vercel                      Hugging Face Spaces                  Supabase
 ```
 
 | Layer | Technology | Hosting |
 |-------|-----------|---------|
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui | Vercel |
-| **Backend** | FastAPI, TensorFlow/Keras, SQLAlchemy | Hugging Face Spaces (Docker) |
-| **Database** | PostgreSQL (production) / SQLite (local dev) | Supabase |
-| **ML Model** | EfficientNetB3 (300×300 input) | Bundled in backend container |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS | Vercel |
+| Backend | FastAPI, TensorFlow/Keras, SQLAlchemy | Hugging Face Spaces (Docker) |
+| Database | PostgreSQL in production, SQLite for local dev | Supabase |
+| Model | EfficientNetB3, 300x300 input | Bundled in the backend container |
+
+The frontend sends an image to the backend. The backend validates it, runs the model, saves the image and its predictions to the database, and returns the ranked results.
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
-DermScan/
-├── backend/                    # FastAPI backend
-│   ├── app/
-│   │   ├── routes/             # API route handlers
-│   │   │   └── predict.py      # POST /predict - image classification endpoint
-│   │   ├── config.py           # Paths, model settings, 23 class names, CORS
-│   │   ├── database.py         # SQLAlchemy engine and session management
-│   │   ├── inference.py        # TensorFlow model loading and prediction logic
-│   │   ├── main.py             # FastAPI app, lifespan events, middleware
-│   │   ├── models.py           # Database ORM models (images, predictions)
-│   │   └── schemas.py          # Pydantic request/response schemas
-│   ├── model/                  # Trained EfficientNetB3 .keras model file
-│   ├── uploads/                # Temporary image storage
-│   ├── requirements.txt        # Python dependencies
-│   └── run.py                  # Uvicorn entry point
-│
-├── Docker/
-│   └── dermscan-api/           # Dockerfile and config for HF Spaces deployment
-│
-├── src/                        # React frontend
-│   ├── components/
-│   │   ├── ui/                 # shadcn/ui primitives (Button, Card, Dialog, etc.)
-│   │   ├── Layout.tsx          # Shared layout - nav bar, background, footer
-│   │   ├── ImageCapture.tsx    # Camera capture component
-│   │   ├── ImageUpload.tsx     # File upload with drag & drop
-│   │   ├── ResultsView.tsx     # Prediction cards with expandable disease details
-│   │   └── ThemeToggle.tsx     # Dark/light mode switch
-│   ├── lib/
-│   │   ├── api.ts              # API client - analyzeImage() fetch wrapper
-│   │   ├── diseases.ts         # Disease knowledge base (23 conditions)
-│   │   └── utils.ts            # Tailwind class merge utility
-│   ├── pages/
-│   │   ├── Index.tsx           # Home page - upload, preview, analyze flow
-│   │   ├── Diseases.tsx        # Disease Library - searchable grid + detail modals
-│   │   ├── About.tsx           # About page - how it works, tech stack, disclaimer
-│   │   └── NotFound.tsx        # 404 page
-│   ├── App.tsx                 # Router and provider setup
-│   ├── main.tsx                # React DOM entry point
-│   └── index.css               # Global styles, animations, design tokens
-│
-├── index.html                  # Vite HTML entry point
-├── vite.config.ts              # Vite config with API proxy for local dev
-├── tailwind.config.ts          # Tailwind theme customization
-├── package.json                # Frontend dependencies
-└── README.md
+Docker/dermscan-api/         Backend (FastAPI)
+  app/
+    main.py                  App setup, startup events, middleware
+    config.py                Model path, class names, CORS settings
+    inference.py             Model loading and prediction
+    database.py              Database connection and sessions
+    models.py                Database tables for images and predictions
+    schemas.py               Request and response formats
+    routes/predict.py        The /predict endpoint
+  requirements.txt           Python dependencies
+  Dockerfile                 Container build for Hugging Face Spaces
+  run.py                     Server entry point
+
+Skin-Disease-Diagnostic-System-deployment/   Frontend (React)
+  src/
+    components/              Interface components and shadcn/ui primitives
+    pages/                   Home, Disease Library, About, 404
+    lib/                     API client, disease data, utilities
+  vite.config.ts            Build config and local dev proxy
+  package.json              Frontend dependencies
 ```
 
 ---
 
-## Getting Started
+## Running it locally
 
-### Prerequisites
+You need Node.js 18 or higher, Python 3.10 or higher, and the trained model file (`skinnet_v3_phase3_best.keras`). A full step-by-step version of this is in `INSTALLATION_GUIDE.txt`.
 
-- **Node.js** ≥ 18
-- **Python** ≥ 3.10
-- Trained model file (`skinnet_v3_phase3_best.keras`) placed in `backend/model/`
-
-### 1. Backend Setup
+Backend:
 
 ```bash
-cd backend
-
-# Create and activate a virtual environment
+cd Docker/dermscan-api
+# place the model at: model/skinnet_v3_phase3_best.keras
 python -m venv venv
-
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# Start the API server (with hot-reload)
-set ENV=development    # Windows
-# export ENV=development  # macOS/Linux
 python run.py
 ```
 
-The backend API starts at **`http://localhost:8000`**.
+The backend starts at `http://localhost:8000`. Without a `DATABASE_URL` set, it falls back to a local SQLite file, so there is nothing else to configure for testing.
 
-### 2. Frontend Setup
-
-Open a **new terminal** in the project root:
+Frontend, in a second terminal:
 
 ```bash
-# Install dependencies
+cd Skin-Disease-Diagnostic-System-deployment
 npm install
-
-# Start the dev server
 npm run dev
 ```
 
-The frontend starts at **`http://localhost:8080`**. The Vite dev server automatically proxies `/predict` requests to the backend.
-
-### 3. Open the App
-
-Navigate to `http://localhost:8080` in your browser. Upload or capture an image to analyze!
+The frontend starts at `http://localhost:8080` and proxies prediction requests to the backend automatically. Open that address in a browser to use the app.
 
 ---
 
 ## Deployment
 
-### Frontend → Vercel
+The frontend deploys to Vercel from the production branch. Set `VITE_API_URL` to the backend URL in the Vercel environment settings.
 
-1. Connect your GitHub repo to [Vercel](https://vercel.com)
-2. Set the **Production Branch** to `deployment`
-3. Add environment variable:
-   ```
-   VITE_API_URL=https://your-space-name.hf.space
-   ```
-4. Deploy - Vercel auto-deploys on every push to `deployment`.
+The backend deploys to Hugging Face Spaces as a Docker space. Upload the contents of `Docker/dermscan-api/` along with the model file, then set two secrets in the space settings:
 
-### Backend → Hugging Face Spaces
-
-1. Create a **Docker** Space on [Hugging Face](https://huggingface.co/spaces)
-2. Upload the contents of `Docker/dermscan-api/` along with your `backend/` code and model
-3. Set **Secrets** in the Space settings:
-   ```
-   DATABASE_URL=postgresql://user:pass@host:port/dbname
-   CORS_ORIGINS=https://your-vercel-app.vercel.app
-   ```
-
-### Database → Supabase
-
-1. Create a free project on [Supabase](https://supabase.com)
-2. Copy the **Connection String** (PostgreSQL) from Project Settings → Database
-3. Use it as the `DATABASE_URL` secret in Hugging Face
-
-> **Note:** Free Supabase projects pause after 7 days of inactivity. Restore from the dashboard if this happens.
-
----
-
-## Environment Variables
-
-| Variable | Where | Purpose |
-|----------|-------|---------|
-| `VITE_API_URL` | Frontend (Vercel) | Backend API URL (empty for local dev) |
-| `DATABASE_URL` | Backend (HF Spaces) | PostgreSQL connection string |
-| `CORS_ORIGINS` | Backend (HF Spaces) | Allowed frontend origins |
-| `ENV` | Backend (local) | Set to `development` for hot-reload |
-
----
-
-## Supported Skin Conditions
-
-The model classifies images into **23 categories**:
-
-| # | Condition | Category | Severity |
-|---|-----------|----------|----------|
-| 1 | Acne & Rosacea | Inflammatory | Moderate |
-| 2 | Allergic Contact Dermatitis | Allergic | Moderate |
-| 3 | Athlete's Foot | Fungal | Low |
-| 4 | Atopic Dermatitis & Keratosis | Inflammatory | Moderate |
-| 5 | Bacterial Skin Infection | Infectious | High |
-| 6 | Benign Skin Lesion | Neoplastic | Low |
-| 7 | Bullous Disease | Autoimmune | High |
-| 8 | Cutaneous Larva Migrans | Parasitic | Moderate |
-| 9 | Eczema (Other Types) | Inflammatory | Moderate |
-| 10 | HSV / HPV / STD-Related | Viral | High |
-| 11 | Leprosy (Hansen's Disease) | Infectious | Critical |
-| 12 | Lichenoid Dermatoses | Inflammatory | Moderate |
-| 13 | Lupus & Connective Tissue Diseases | Autoimmune | High |
-| 14 | Malignant Skin Lesion | Neoplastic | Critical |
-| 15 | Nail Fungus (Onychomycosis) | Fungal | Low |
-| 16 | Psoriasis & Seborrheic Dermatitis | Inflammatory | Moderate |
-| 17 | Scabies & Skin Infestation | Parasitic | Moderate |
-| 18 | Seborrheic Keratoses | Neoplastic | Low |
-| 19 | Tinea (Ringworm) Infection | Fungal | Moderate |
-| 20 | Urticaria (Hives) | Allergic | Moderate |
-| 21 | VZV Viral Infection (Shingles / Chickenpox) | Viral | High |
-| 22 | Vascular Tumors | Neoplastic | Moderate |
-| 23 | Warts | Viral | Low |
-
----
-
-## Development
-
-```bash
-# Run linter
-npm run lint
-
-# Run tests
-npm run test
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+```
+DATABASE_URL=postgresql://user:pass@host:port/dbname
+CORS_ORIGINS=https://your-frontend-url.vercel.app
 ```
 
-### Branch Strategy
+The database is a Supabase PostgreSQL project. Copy its connection string into `DATABASE_URL`. Free Supabase projects pause after a week of inactivity, so if the app stops saving predictions, check whether the database needs restarting from the Supabase dashboard.
 
-| Branch | Purpose |
-|--------|---------|
-| `deployment` | Production - Vercel deploys from here |
-| `feature/ui-enhancements` | Development - latest working code |
-| `cleanup-post-deploy` | Post-deployment cleanup snapshot |
+---
+
+## Environment variables
+
+| Variable | Location | Purpose |
+|----------|----------|---------|
+| `VITE_API_URL` | Frontend (Vercel) | Backend URL; leave empty for local dev |
+| `DATABASE_URL` | Backend (HF Spaces) | PostgreSQL connection string |
+| `CORS_ORIGINS` | Backend (HF Spaces) | Allowed frontend origins |
+
+---
+
+## The 23 conditions
+
+Acne & Rosacea, Allergic Contact Dermatitis, Athlete's Foot, Atopic Dermatitis & Keratosis, Bacterial Skin Infection, Benign Skin Lesion, Bullous Disease, Cutaneous Larva Migrans, Eczema (other types), HSV/HPV/STD-related, Leprosy, Lichenoid Dermatoses, Lupus & Connective Tissue Diseases, Malignant Skin Lesion, Nail Fungus, Psoriasis & Seborrheic Dermatitis, Scabies & Infestation, Seborrheic Keratoses, Tinea (ringworm), Urticaria (hives), VZV Viral Infection, Vascular Tumors, and Warts.
+
+---
+
+## Development commands
+
+```bash
+npm run lint      # lint the frontend
+npm run test      # run frontend tests
+npm run build     # production build
+npm run preview   # preview the production build
+```
 
 ---
 
 ## Disclaimer
 
-DermScan is an **educational tool** developed as a thesis project. It is **not a substitute for professional medical advice, diagnosis, or treatment**. Always consult a qualified dermatologist or healthcare provider for skin concerns. The AI model's predictions should be used as a preliminary reference only.
-
----
-
-## License
-
-This project was developed as part of an academic thesis. All rights reserved.
+DermScan is an educational tool from an academic thesis. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified dermatologist for any skin concern. Treat the model's output as a preliminary reference and nothing more.
